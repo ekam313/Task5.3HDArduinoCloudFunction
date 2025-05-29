@@ -1,0 +1,75 @@
+#include <SPI.h>
+#include <WiFiNINA.h>
+#include <ArduinoHttpClient.h>
+
+// Wi-Fi credentials
+const char ssid[] = "Akaaaal";
+const char pass[] = "Helloworld123";
+
+// Firebase project settings
+const char firebaseHost[] = "trafficlightcalling-default-rtdb.firebaseio.com";
+const String firebaseAuth = "mRXXQExOUFayVEKZ1yR2zgojEcnVCKaG6EfX63jE";
+
+// Define LED pins
+const int redPin = 4;
+const int greenPin = 5;
+const int yellowPin = 6;
+
+// HTTPS client setup using WiFiSSLClient 
+WiFiSSLClient wifi;
+HttpClient client = HttpClient(wifi, firebaseHost, 443); // Connect to Firebase via HTTPS (port 443)
+
+void setup() {
+  Serial.begin(115200);  // Start serial monitor for debugging
+
+  // Set pins as output
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(yellowPin, OUTPUT);
+
+  // Connect to Wi-Fi
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi connected!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void loop() {
+  // Call function to update all LEDs based on Firebase values
+  updateAllLEDs();
+  delay(1000); // Wait 1 second before next request to reduce traffic
+}
+
+// This function fetches LED states from Firebase in one GET request
+void updateAllLEDs() {
+  String path = "/leds.json?auth=" + firebaseAuth; // Path to Firebase data
+  Serial.println("Requesting: " + path);
+
+  client.get(path); // Send HTTPS GET request
+  int statusCode = client.responseStatusCode(); // Get HTTP response code
+  String response = client.responseBody();      // Get the response body (JSON)
+
+  Serial.println("HTTP Status: " + String(statusCode));
+  Serial.println("Response: " + response);
+
+  if (statusCode == 200) {
+    response.trim();
+
+    // Simple string checks to detect if a color is active
+    digitalWrite(redPin, response.indexOf("\"red\":\"red\"") != -1 ? HIGH : LOW);
+    digitalWrite(greenPin, response.indexOf("\"green\":\"green\"") != -1 ? HIGH : LOW);
+    digitalWrite(yellowPin, response.indexOf("\"yellow\":\"yellow\"") != -1 ? HIGH : LOW);
+
+    // Optional debugging output
+    Serial.println("Red LED: " + String(digitalRead(redPin)));
+    Serial.println("Green LED: " + String(digitalRead(greenPin)));
+    Serial.println("Yellow LED: " + String(digitalRead(yellowPin)));
+  } else {
+    Serial.println("Failed to fetch LED states.");
+  }
+}
