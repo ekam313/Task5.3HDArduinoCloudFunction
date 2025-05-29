@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Traffic Light Controller</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f7f8fa, #e2ecf6);
+      text-align: center;
+      padding: 50px;
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .led-control {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .led {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .led:hover {
+      transform: translateY(-5px);
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+    }
+
+    .red { color: #d32f2f; }
+    .green { color: #388e3c; }
+    .yellow { color: #fbc02d; }
+  </style>
+</head>
+<body>
+
+  <h2>🚦 Remote Traffic Light Control Panel</h2>
+
+  <div class="led-control">
+    <div class="led">
+      <label class="red">
+        <input type="checkbox" id="redCheckbox" onchange="updateLED('red')">
+        Red LED
+      </label>
+    </div>
+    <div class="led">
+      <label class="green">
+        <input type="checkbox" id="greenCheckbox" onchange="updateLED('green')">
+        Green LED
+      </label>
+    </div>
+    <div class="led">
+      <label class="yellow">
+        <input type="checkbox" id="yellowCheckbox" onchange="updateLED('yellow')">
+        Yellow LED
+      </label>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCI_eMkYhuyv6QLLYeYPtq7UgctEXKWwtg",
+      authDomain: "trafficlightcalling.firebaseapp.com",
+      databaseURL: "https://trafficlightcalling-default-rtdb.firebaseio.com",
+      projectId: "trafficlightcalling",
+      storageBucket: "trafficlightcalling.appspot.com",
+      messagingSenderId: "1064054018587",
+      appId: "1:1064054018587:web:abf1537a527a3af7121ebe"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function updateLED(color) {
+      const checkbox = document.getElementById(color + "Checkbox");
+      const value = checkbox.checked ? color : "";
+      database.ref("/leds/" + color).set(value)
+        .then(() => console.log(`${color.toUpperCase()} LED set to "${value}"`))
+        .catch(error => console.error("Error:", error));
+    }
+  </script>
+
+</body>
+</html>
